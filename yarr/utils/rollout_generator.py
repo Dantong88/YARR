@@ -1,5 +1,6 @@
+import os
 from multiprocessing import Value
-
+from PIL import Image
 import numpy as np
 import torch
 from yarr.agents.agent import Agent
@@ -26,11 +27,28 @@ class RolloutGenerator(object):
 
         agent.reset()
         obs_history = {k: [np.array(v, dtype=self._get_type(v))] * timesteps for k, v in obs.items()}
+        obs_history['gripper_open'] = []
+        obs_history['gripper_pos'] = []
+
+        episode_length = 10
         for step in range(episode_length):
+            print(step)
+            debug = True
+            if debug:
+                image = np.transpose(obs_history['front_rgb'][-1], (1, 2, 0))
+                image = Image.fromarray(image)
+                save_path = '/home/niudt/peract/Processing_data/keyframe_version/annotations_new/keyframes_rlbench_val/{}/{}.png'.format(eval_demo_seed, step)
+                os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                image.save(save_path)
+            gripper_pos = env._task._scene.get_observation().gripper_pose
+            gripper_open = env._task._scene.get_observation().gripper_open
+            obs_history['gripper_pos'].append(gripper_pos)
+            obs_history['gripper_open'].append(gripper_open)
 
-            prepped_data = {k:torch.tensor([v], device=self._env_device) for k, v in obs_history.items()}
+            # prepped_data = obs_history
+            # prepped_data = {k:torch.tensor([v], device=self._env_device) for k, v in obs_history.items()}
 
-            act_result = agent.act(step_signal.value, prepped_data,
+            act_result = agent.act(eval_demo_seed, step, obs_history,
                                    deterministic=eval)
 
             # Convert to np if not already
@@ -56,8 +74,11 @@ class RolloutGenerator(object):
             obs_and_replay_elems.update(extra_replay_elements)
 
             for k in obs_history.keys():
-                obs_history[k].append(transition.observation[k])
-                obs_history[k].pop(0)
+                if k == 'gripper_pos' or k == 'gripper_open':
+                    obs_history[k].pop(0)
+                else:
+                    obs_history[k].append(transition.observation[k])
+                    obs_history[k].pop(0)
 
             transition.info["active_task_id"] = env.active_task_id
 
@@ -67,6 +88,7 @@ class RolloutGenerator(object):
                 info=transition.info)
 
             if transition.terminal or timeout:
+                print('i am here*')
                 # If the agent gives us observations then we need to call act
                 # one last time (i.e. acting in the terminal state).
                 if len(act_result.observation_elements) > 0:
@@ -79,6 +101,7 @@ class RolloutGenerator(object):
                 replay_transition.final_observation = obs_tp1
 
             if record_enabled and transition.terminal or timeout or step == episode_length - 1:
+                print('i am here****')
                 env.env._action_mode.arm_action_mode.record_end(env.env._scene,
                                                                 steps=60, step_scene=True)
 

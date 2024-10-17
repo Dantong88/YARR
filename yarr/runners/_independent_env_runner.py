@@ -168,6 +168,13 @@ class _IndependentEnvRunner(_EnvRunner):
             self._agent.load_weights(weight_path)
             weight_name = str(weight)
 
+        if type(weight) == str:
+            logging.info('Evaluating weight %s' % weight)
+            weight_path = weight
+            seed_path = None
+            self._agent.load_weights(weight_path)
+            weight_name = str(weight)
+
         new_transitions = {'train_envs': 0, 'eval_envs': 0}
         total_transitions = {'train_envs': 0, 'eval_envs': 0}
         current_task_id = -1
