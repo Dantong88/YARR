@@ -30,7 +30,7 @@ class RolloutGenerator(object):
         obs_history['gripper_open'] = []
         obs_history['gripper_pos'] = []
 
-        episode_length = 10
+        episode_length = 5
         for step in range(episode_length):
             print(step)
             debug = True
