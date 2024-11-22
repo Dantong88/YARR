@@ -21,18 +21,18 @@ class RolloutGenerator(object):
                   record_enabled: bool = False):
 
         if eval:
-            obs = env.reset_to_demo(eval_demo_seed)
+            obs, language_goal = env.reset_to_demo(eval_demo_seed)
         else:
             obs = env.reset()
 
-        agent.reset()
+        agent.reset(language_goal)
         obs_history = {k: [np.array(v, dtype=self._get_type(v))] * timesteps for k, v in obs.items()}
         obs_history['gripper_open'] = []
         obs_history['gripper_pos'] = []
 
         for step in range(episode_length):
             print(step)
-            debug = True
+            debug = False
             if debug:
                 image = np.transpose(obs_history['front_rgb'][-1], (1, 2, 0))
                 image = Image.fromarray(image)
