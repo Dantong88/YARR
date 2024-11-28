@@ -24,7 +24,7 @@ class RolloutGenerator(object):
         else:
             obs = env.reset()
 
-        agent.reset()
+        agent.reset(eps_idx = eval_demo_seed)
         obs_history = {k: [np.array(v, dtype=self._get_type(v))] * timesteps for k, v in obs.items()}
         obs_history['joint_pos'] = []
         obs_history['gripper_pos'] = []
@@ -39,7 +39,6 @@ class RolloutGenerator(object):
             obs_history['joint_pos'].append(joint_pos)
             obs_history['gripper_pos'].append(gripper_pos)
             obs_history['gripper_open'].append(gripper_open)
-            print('*** gripper_open', gripper_open)
             prepped_data = obs_history
 
             act_result = agent.act(step_signal.value, prepped_data, task_goal,
