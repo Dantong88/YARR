@@ -28,13 +28,18 @@ class RolloutGenerator(object):
         obs_history = {k: [np.array(v, dtype=self._get_type(v))] * timesteps for k, v in obs.items()}
         obs_history['joint_pos'] = []
         obs_history['gripper_pos'] = []
+        obs_history['gripper_open'] = []
 
         for step in range(episode_length):
             # prepped_data = {k:torch.tensor([v], device=self._env_device) for k, v in obs_history.items()}
             joint_pos = env._task._scene.get_observation().joint_positions
             gripper_pos = env._task._scene.get_observation().gripper_joint_positions
+            gripper_open = env._task._scene.get_observation().gripper_open
+            # breakpoint()
             obs_history['joint_pos'].append(joint_pos)
             obs_history['gripper_pos'].append(gripper_pos)
+            obs_history['gripper_open'].append(gripper_open)
+            print('*** gripper_open', gripper_open)
             prepped_data = obs_history
 
             act_result = agent.act(step_signal.value, prepped_data, task_goal,
@@ -63,7 +68,7 @@ class RolloutGenerator(object):
             obs_and_replay_elems.update(extra_replay_elements)
 
             for k in obs_history.keys():
-                if k == 'joint_pos' or k == 'gripper_pos':
+                if k == 'joint_pos' or k == 'gripper_pos' or k == 'gripper_open':
                     obs_history[k].pop(0)
                 else:
                     obs_history[k].append(transition.observation[k])
