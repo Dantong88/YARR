@@ -25,7 +25,7 @@ class RolloutGenerator(object):
         else:
             obs = env.reset()
 
-        agent.reset(language_goal)
+        agent.reset(language_goal, eval_demo_seed)
         obs_history = {k: [np.array(v, dtype=self._get_type(v))] * timesteps for k, v in obs.items()}
         obs_history['gripper_open'] = []
         obs_history['gripper_pos'] = []
