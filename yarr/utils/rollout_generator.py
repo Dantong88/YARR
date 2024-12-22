@@ -6,7 +6,7 @@ import torch
 from yarr.agents.agent import Agent
 from yarr.envs.env import Env
 from yarr.utils.transition import ReplayTransition
-
+import json
 
 class RolloutGenerator(object):
 
@@ -87,7 +87,16 @@ class RolloutGenerator(object):
                 info=transition.info)
 
             if transition.terminal or timeout:
-                print('i am here*')
+                # save_the_contro_error
+                if transition.reward == 100:
+                    control_error = agent._pose_agent.control_error
+                    control_error['success'] = True
+                    save_dir = os.path.join(agent._pose_agent.save_dir, 'eval_{}.json'.format(eval_demo_seed))
+
+                    # Save to JSON file
+                    with open(save_dir, "w") as json_file:
+                        json.dump(control_error, json_file)
+
                 # If the agent gives us observations then we need to call act
                 # one last time (i.e. acting in the terminal state).
                 if len(act_result.observation_elements) > 0:
@@ -100,7 +109,7 @@ class RolloutGenerator(object):
                 replay_transition.final_observation = obs_tp1
 
             if record_enabled and transition.terminal or timeout or step == episode_length - 1:
-                print('i am here****')
+                print('seem failed')
                 env.env._action_mode.arm_action_mode.record_end(env.env._scene,
                                                                 steps=60, step_scene=True)
 
